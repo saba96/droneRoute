@@ -49,12 +49,17 @@ class DroneController {
   
   calculatePath (parrents) {
     this.path = []
+    this.stationsOnPath = []
     let current = 'destination'
     while (parrents[current] !== undefined) {
-      this.path.push(current)
+      this.path.push(this.stations[current])
+      this.stationsOnPath.push(current)
       current = parrents[current]
     }
-    return this.path.reverse()
+    return {
+      path: this.path.reverse(),
+      stationsOnPath: this.stationsOnPath.reverse()
+    }
   }
   
   dijkstra () {
@@ -94,20 +99,14 @@ class DroneController {
     this.constructGraph()
     this.dijkstra()
     console.log('dijkstra ended')
+    if(this.path !== []){
+      this.path.unshift(this.source)
+      this.stationsOnPath.unshift('start')
+    }
     return {
       distance: this.minDistance,
-      path: this.path
+      path: this.path, //array : locations of stations on path
+      stationsOnPath: this.stationsOnPath //array : name of stations
     }
   }
 }
-
-//simple exapmle of how to use it
-let source = {lat: "35.664390", lng:"139.769869"}
-let destination = {lat: "35.70637741", lng:"139.7845459"}
-let options = {
-  MAX_DISTANCE: 2
-}
-
-let instance = new DroneController(source, destination, options)
-let answer = instance.solve()
-console.log(answer)

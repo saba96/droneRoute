@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Simple Polylines</title>
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <script type="text/javascript" src= "droneRoute.js"></script>
+    <script>
+      function randomLocation(originX, originY){
+      let r = 6000/111300 // radius is in meters
+        , y0 = originX
+        , x0 = originY
+        , u = Math.random()
+        , v = Math.random()
+        , w = r * Math.sqrt(u)
+        , t = 2 * Math.PI * v
+        , x = w * Math.cos(t)
+        , y1 = w * Math.sin(t)
+        , x1 = x / Math.cos(y0)
+
+        return {lat:  y0 + y1, lng: x0 + x1}
+      }
+      function initMap() {
+        let map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 10,
+          center: {lat:   35.652832, lng: 139.839478},
+          mapTypeId: 'terrain'
+        });
+
+      //simple exapmle of how to use it
+      let source = randomLocation(35.652832, 139.839478)
+      // {lat: 35.664390, lng:139.769869}
+      let destination = randomLocation(source.lat, source.lng)
+      //{lat: 35.70637741, lng:139.7845459}
+      let options = {
+        MAX_DISTANCE: 4
+      }
+
+      let instance = new DroneController(source, destination, options)
+      let answer = instance.solve()
+      console.log(answer)
+        let flightPlanCoordinates = answer.path
+        let flightPath = new google.maps.Polyline({
+          path: flightPlanCoordinates,
+          geodesic: true,
+          strokeColor: '#FF0000',
+          strokeOpacity: 1.0,
+          strokeWeight: 2
+        });
+
+        flightPath.setMap(map)
+      }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAfkwBPa0opzRFbC7gbJ1p1ytH-4O_6vT4&callback=initMap">
+    </script>
+  </body>
+</html>
