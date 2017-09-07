@@ -22,6 +22,7 @@
     <div id="map"></div>
     <script type="text/javascript" src= "droneRoute.js"></script>
     <script>
+
       function randomLocation(originX, originY){
       let r = 6000/111300 // radius is in meters
         , y0 = originX
@@ -40,21 +41,29 @@
         let map = new google.maps.Map(document.getElementById('map'), {
           zoom: 10,
           center: {lat:   35.652832, lng: 139.839478},
-          mapTypeId: 'terrain'
+          mapTypeId: 'terrain',
+          markers:[]
         });
 
-      //simple exapmle of how to use it
-      let source = randomLocation(35.652832, 139.839478)
-      // {lat: 35.664390, lng:139.769869}
-      let destination = randomLocation(source.lat, source.lng)
-      //{lat: 35.70637741, lng:139.7845459}
-      let options = {
-        MAX_DISTANCE: 4
-      }
+        //get random locatoin in Tokyo
+        // tokyo location : {lat: 35.664390, lng:139.769869}
+        let source = randomLocation(35.652832, 139.839478)
+        //get random locatoin around source
+        let destination = randomLocation(source.lat, source.lng)
+        
+        let options = {
+          MAX_DISTANCE: 4
+        }
 
-      let instance = new DroneController(source, destination, options)
-      let answer = instance.solve()
-      console.log(answer)
+        let instance = new DroneController(source, destination, options)
+        let answer = instance.solve()
+        console.log(answer)
+        for(let point of answer.path){
+          let marker = new google.maps.Marker({
+            map: map,
+            position: point
+          });
+        } 
         let flightPlanCoordinates = answer.path
         let flightPath = new google.maps.Polyline({
           path: flightPlanCoordinates,

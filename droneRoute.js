@@ -15,14 +15,44 @@ class DroneController {
     // Add Source and Destination Points to the List of Stations
     this.stations.source = this.source
     this.stations.destination = this.destination
+    this.firstStation = this.findNearestStation(source)
   }
   
+
+  findNearestStation(point){
+    let minDistance
+    let stationName
+    let stationLocation
+    let first = true
+    for(let station in this.stations){
+      let distance = this.distance(point, {lat: this.stations[station].lat, lng: this.stations[station].lng})
+      if(station ==='source' || station==='destination'){
+        continue
+      }
+      if(first){
+        minDistance = distance
+        stationLocation = station
+        first = false
+      }
+      if(distance < minDistance){
+        minDistance = distance
+        stationName = station
+        stationLocation= this.stations[station]
+      }
+    }
+    return {
+      minDistance,
+      stationName,
+      stationLocation
+    }
+  }
+
+
   distance (a, b) {
     function deg2rad(deg) {
       return deg * (Math.PI/180)
     }
     const R = 6371                // Radius of the earth in km
-    
     let dLat = deg2rad(a.lat - b.lat)
     let dLng = deg2rad(a.lng - b.lng)
     let A =  Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(deg2rad(a.lat)) * Math.cos(deg2rad(b.lat)) * Math.sin(dLng/2) * Math.sin(dLng/2) 
@@ -63,13 +93,15 @@ class DroneController {
   }
   
   dijkstra () {
+    if(this.nearestStation > this.options.MAX_DISTANCE / 2 ){
+      return this.minDistance = undefined
+    }
     let unvisited = Object.keys(this.graph)
     let dis = {}
     let current = 'source'
     let pathParrent = {}
     let maxStep = unvisited.length + 1;
     dis[current] = 0
-    
     while (maxStep--) {
       for (let adj in this.graph[current]) {
         if (dis[adj] === undefined || dis[adj] > dis[current] + this.distance(this.stations[current], this.stations[adj])) {
@@ -101,7 +133,19 @@ class DroneController {
     console.log('dijkstra ended')
     if(this.path !== []){
       this.path.unshift(this.source)
-      this.stationsOnPath.unshift('start')
+      this.stationsOnPath.unshift('source')
+    }
+    this.path.unshift(this.firstStation.stationLocation)
+    this.stationsOnPath.unshift(this.firstStation.stationName)
+    this.finalStation = this.findNearestStation(this.destination)
+    if(this.finalStation.minDistance > this.options.MAX_DISTANCE/2){
+      this.minDistance = undefined
+    }
+    this.path.push(this.finalStation.stationLocation)
+    this.stationsOnPath.push(this.finalStation.stationName)
+    if(this.minDistance === undefined){
+      this.path = []
+      this.stationsOnPath = []
     }
     return {
       distance: this.minDistance,
